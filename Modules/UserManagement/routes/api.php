@@ -26,8 +26,8 @@ Route::prefix('usermanagement')->group(function () {
 
     Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
         Route::apiResource('usermanagement', UserManagementController::class)->names('usermanagement');
-    
-        Route::resource('roles', RoleController::class);
+
         Route::resource('permissions', PermissionController::class);
     });
+    Route::resource('roles', RoleController::class);
 });

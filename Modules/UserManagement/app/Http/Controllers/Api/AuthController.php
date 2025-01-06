@@ -5,10 +5,11 @@ namespace Modules\UserManagement\Http\Controllers\Api;
 use App\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Services\AuthService;
+use Modules\UserManagement\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+
 
 class AuthController extends Controller
 {
@@ -21,12 +22,12 @@ class AuthController extends Controller
 
     public function __construct(AuthService $authService)
     {
-        $this->authService = $authService;
+        return  $this->authService = $authService;
     }
 
     public function register(Request $request)
     {
-        $this->authService->register($request);
+        return  $this->authService->register($request);
     }
 
     /**
@@ -34,7 +35,7 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $this->authService->login($request);
+        return $this->authService->login($request);
     }
 
     /**
@@ -42,6 +43,6 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $this->authService->logout($request);
+        return  $this->authService->logout($request);
     }
 }

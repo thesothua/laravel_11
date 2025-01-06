@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace Modules\UserManagement\Services;
 
 use App\ApiResponse;
 use App\Models\User;
@@ -11,11 +11,11 @@ use Illuminate\Validation\ValidationException;
 class AuthService
 {
     use ApiResponse;
-    public $authService;
+    public $userModel;
 
-    public function __construct(AuthService $authService)
+    public function __construct(User $userModel)
     {
-        $this->authService = $authService;
+        $this->userModel = $userModel;
     }
 
     public function register($request)
@@ -43,13 +43,13 @@ class AuthService
 
     public function login($request)
     {
+      
         $request->validate([
             'email' => 'required|string|email',
             'password' => 'required|string',
         ]);
 
         $user = User::where('email', $request->email)->first();
-
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
 
@@ -65,7 +65,7 @@ class AuthService
             'token_type' => 'Bearer',
             'user' => $user,
         ];
-        
+
         return $this->success($data, 'User Login successfully');
     }
 

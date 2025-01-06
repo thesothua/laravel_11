@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace Modules\UserManagement\Services;
 
 use App\ApiResponse;
 use App\Models\User;

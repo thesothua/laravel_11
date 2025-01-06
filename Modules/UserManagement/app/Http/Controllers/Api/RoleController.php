@@ -4,7 +4,7 @@ namespace Modules\UserManagement\Http\Controllers\Api;
 
 use App\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Services\RoleService;
+use Modules\UserManagement\Services\RoleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -26,26 +26,26 @@ class RoleController extends Controller
 
     public function index(Request $request)
     {
-        $this->roleService->collection($request);
+        return  $this->roleService->collection($request);
     }
 
     public function store(Request $request)
     {
-        $this->roleService->store($request);
+        return $this->roleService->store($request);
     }
 
     public function show($id)
     {
-        $this->roleService->show($id);
+        return  $this->roleService->show($id);
     }
 
     public function update(UpdateRoleRequest $request, $id)
     {
-        $this->roleService->update($request, $id);
+        return  $this->roleService->update($request, $id);
     }
 
     public function destroy($id)
     {
-        $this->roleService->destroy($id);
+        return  $this->roleService->destroy($id);
     }
 }
