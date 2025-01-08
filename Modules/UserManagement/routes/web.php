@@ -14,6 +14,8 @@ use Modules\UserManagement\Http\Controllers\UserManagementController;
 |
 */
 
-Route::group([], function () {
-    Route::resource('usermanagement', UserManagementController::class)->names('usermanagement');
-});
+// Route::group([], function () {
+    // Route::resource('usermanagement', UserManagementController::class)->names('usermanagement');
+// });
+
+

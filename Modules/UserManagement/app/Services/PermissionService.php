@@ -1,6 +1,7 @@
 <?php
 
-namespace App\Services;
+
+namespace Modules\UserManagement\Services;
 
 use App\ApiResponse;
 use App\Models\User;
@@ -29,6 +30,7 @@ class PermissionService
             // Get all permissions
             $permissions = Permission::select($columns)->paginate();
 
+        
             return $this->success($permissions, 'Permission fetched successfully');
         } catch (\Exception $e) {
             return $this->error('An error occurred while fetching permissions.');

@@ -45,4 +45,25 @@ class AuthController extends Controller
     {
         return  $this->authService->logout($request);
     }
+
+    /**
+     * Reset password a user (revoke the token)
+     */
+    public function sendResetLinkEmail(Request $request)
+    {
+        return  $this->authService->sendResetLinkEmail($request);
+    }
+
+    /**
+     * Reset password a user (revoke the token)
+     */
+    public function resetPassword(Request $request)
+    {
+        return  $this->authService->resetPassword($request);
+    }
+
+    public function testmail(Request $request)
+    {
+        return  $this->authService->testmail($request);
+    }
 }

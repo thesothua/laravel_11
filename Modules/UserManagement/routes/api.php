@@ -23,11 +23,15 @@ Route::prefix('usermanagement')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+    Route::post('/password/email', [AuthController::class, 'sendResetLinkEmail']);
+    Route::post('/password/reset', [AuthController::class, 'resetPassword']);
+    Route::post('/testmail', [AuthController::class, 'testmail']);
+
 
     Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
         Route::apiResource('usermanagement', UserManagementController::class)->names('usermanagement');
 
         Route::resource('permissions', PermissionController::class);
+        Route::resource('roles', RoleController::class);
     });
-    Route::resource('roles', RoleController::class);
 });
