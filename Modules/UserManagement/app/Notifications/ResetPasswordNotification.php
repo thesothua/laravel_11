@@ -35,7 +35,7 @@ class ResetPasswordNotification extends Notification
     public function toMail($notifiable): MailMessage
     {
 
-        $url = url('/reset-password?token=' . $this->token);
+        $url = url('/reset-password/' . $this->token);
 
         return (new MailMessage)
             // ->line('The introduction to the notification.')

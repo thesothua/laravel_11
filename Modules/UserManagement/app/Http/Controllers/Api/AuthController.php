@@ -61,9 +61,4 @@ class AuthController extends Controller
     {
         return  $this->authService->resetPassword($request);
     }
-
-    public function testmail(Request $request)
-    {
-        return  $this->authService->testmail($request);
-    }
 }

@@ -28,6 +28,18 @@ class AuthService
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            // Optional profile fields
+            'phone_number' => 'nullable|string|max:15',
+            'date_of_birth' => 'nullable|date',
+            'profile_image' => 'nullable|image|max:2048', // Example for profile image
+            // Optional address fields
+            'address_line_1' => 'nullable|string|max:255',
+            'address_line_2' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:20',
+            'type' => 'nullable|in:home,work,billing,shipping', // Address type validation
         ]);
 
         $user = User::create([
@@ -35,6 +47,30 @@ class AuthService
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+
+        // Optional: Create profile if data provided
+        if ($request->hasAny(['phone_number', 'date_of_birth', 'profile_image'])) {
+            $user->profile()->create([
+                'phone_number' => $request->phone_number,
+                'date_of_birth' => $request->date_of_birth,
+                'profile_image' => $request->profile_image ? $request->file('profile_image')->store('profile_images') : null,
+            ]);
+        }
+
+        // Optional: Create address if data provided
+        if ($request->hasAny(['address_line_1', 'address_line_2', 'city', 'state', 'country', 'postal_code'])) {
+            $user->addresses()->create([
+                'address_line_1' => $request->address_line_1,
+                'address_line_2' => $request->address_line_2,
+                'city' => $request->city,
+                'state' => $request->state,
+                'country' => $request->country,
+                'postal_code' => $request->postal_code,
+                'type' => $request->type ?? 'home',
+            ]);
+        }
+
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -101,6 +137,15 @@ class AuthService
             : response()->json(['message' => __($status)], 400);
     }
 
+    // public function resetPasswordForm($request)
+    // {
+    //     // Send Welcome Email
+    //     $email = $request->email;
+    //     Mail::to($email)->send(new WelcomeMail('445gsgigggsgs'));
+
+    //     return response()->json(['message' => 'Welcome email sent successfully!']);
+    // }
+
     // Step 2: Reset Password
     public function resetPassword($request)
     {
@@ -126,15 +171,5 @@ class AuthService
         return $status === Password::PASSWORD_RESET
             ? response()->json(['message' => __($status)])
             : response()->json(['message' => __($status)], 400);
-    }
-
-
-    public function testmail($request)
-    {
-        // Send Welcome Email
-        $email = $request->email;
-        Mail::to($email)->send(new WelcomeMail('445gsgigggsgs'));
-
-        return response()->json(['message' => 'Welcome email sent successfully!']);
     }
 }

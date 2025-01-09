@@ -25,7 +25,7 @@ Route::prefix('usermanagement')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
     Route::post('/password/email', [AuthController::class, 'sendResetLinkEmail']);
     Route::post('/password/reset', [AuthController::class, 'resetPassword']);
-    Route::post('/testmail', [AuthController::class, 'testmail']);
+    // Route::post('/testmail', [AuthController::class, 'testmail']);
 
 
     Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
