@@ -3,12 +3,9 @@
 namespace Modules\UserManagement\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Services\UserService;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Hash;
+use Modules\UserManagement\Http\Requests\CreateUserRequest;
+use Modules\UserManagement\Services\UserService;
 
 class UserController extends Controller
 {
@@ -16,7 +13,7 @@ class UserController extends Controller
 
     public function __construct(UserService $userService)
     {
-        $this->userService = $userService;
+        return $this->userService = $userService;
     }
 
     /**
@@ -24,14 +21,16 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $this->userService->collection($request);
+        return $this->userService->collection($request);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request) {
-        $this->userService->store($request);
+    public function store(CreateUserRequest $request)
+    {
+       
+        return  $this->userService->store($request);
     }
 
     /**
@@ -39,22 +38,22 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $this->userService->show($id);
+        return  $this->userService->show($id);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
-    {
-        $this->userService->update($id);
-    }
+    // public function update(Request $request, $id)
+    // {
+    //     $this->userService->update($id);
+    // }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
-    {
-        //
-    }
+    // public function destroy($id)
+    // {
+    //     //
+    // }
 }

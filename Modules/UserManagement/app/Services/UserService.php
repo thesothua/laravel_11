@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace Modules\UserManagement\Services;
 
 use App\ApiResponse;
 use App\Models\User;
@@ -23,11 +23,22 @@ class UserService
 
     public function store($request)
     {
+
         $user = $this->userModel->create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        // Create profile if provided
+        if ($request->has('profile')) {
+            $user->profile()->create($request->input('profile'));
+        }
+
+        // Create addresses if provided
+        if ($request->has('addresses')) {
+            $user->addresses()->createMany($request->input('addresses'));
+        }
 
         // Assign roles to the user
         $user->assignRole($request->roles);
