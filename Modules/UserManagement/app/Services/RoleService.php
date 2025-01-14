@@ -3,8 +3,6 @@
 namespace Modules\UserManagement\Services;
 
 use App\ApiResponse;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
 class RoleService
@@ -21,20 +19,20 @@ class RoleService
     {
         // Get all roles with their permissions
         $roles = Role::with('permissions')->get();
-        return $this->success($roles, 'Roles fetched successfully');
+        return $this->successResponse('Roles fetched successfully', $roles);
     }
 
     public function store($request)
     {
         // Create the role
-        $role = Role::create(['name' => $request->name, 'guard_name' => $request->guard_name]);
+        $role = Role::create(['name' => $request->name]);
 
         // Attach permissions to the role
         if ($request->permissions) {
             $role->syncPermissions($request->permissions);
         }
 
-        return $this->success($role, 'Role created successfully');
+        return $this->createdResponse('Role created successfully', $role);
     }
 
     public function show($id)
@@ -42,7 +40,7 @@ class RoleService
         // Show a single role with its permissions
         $role = Role::with('permissions')->findOrFail($id);
 
-        return $this->success($role, 'Role fetched successfully');
+        return $this->successResponse('Role fetched successfully', $role);
     }
 
     public function update($request, $id)
@@ -56,7 +54,7 @@ class RoleService
             $role->syncPermissions($request->permissions);
         }
 
-        return $this->success($role, 'Role updated successfully');
+        return $this->successResponse('Role updated successfully', $role);
     }
 
     public function destroy($id)
@@ -66,6 +64,6 @@ class RoleService
 
         $role->delete();
 
-        return $this->success(null, 'Role deleted successfully');
+        return $this->successResponse('Role deleted successfully', null);
     }
 }

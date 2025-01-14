@@ -19,10 +19,10 @@ use Modules\UserManagement\Http\Controllers\UserManagementController;
 // });
 
 // Route::prefix('usermanagement')->group(function () {
-    Route::get('/reset-password/{token}', function ($token) {
-        return view('usermanagement::emails.reset-password', ['token' => $token]);
-    })
-    ->middleware('guest')->name('password.reset');
+    // Route::get('/reset-password/{token}', function ($token) {
+    //     return view('usermanagement::emails.reset-password', ['token' => $token]);
+    // })
+    // ->middleware('guest')->name('password.reset');
     // });
 
 

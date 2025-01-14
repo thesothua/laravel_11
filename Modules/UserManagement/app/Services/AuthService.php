@@ -4,13 +4,10 @@ namespace Modules\UserManagement\Services;
 
 use App\ApiResponse;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
-use Modules\UserManagement\Emails\WelcomeMail;
 
 class AuthService
 {
@@ -48,7 +45,6 @@ class AuthService
             'password' => Hash::make($request->password),
         ]);
 
-
         // Optional: Create profile if data provided
         if ($request->hasAny(['phone_number', 'date_of_birth', 'profile_image'])) {
             $user->profile()->create([
@@ -71,7 +67,6 @@ class AuthService
             ]);
         }
 
-
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -90,7 +85,7 @@ class AuthService
 
         $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
 
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
@@ -105,17 +100,16 @@ class AuthService
             'user' => $user,
         ];
 
-        return $this->success($data, 'User Login successfully');
+        return $this->successResponse('User Login successfully', $data);
     }
 
     public function logout($request)
     {
         $request->user()->currentAccessToken()->delete();
         return response()->json([
-            'message' => 'Logged out successfully'
+            'message' => 'Logged out successfully',
         ]);
     }
-
 
     // Step 1: Request Reset Link
     public function sendResetLinkEmail($request)
@@ -133,8 +127,8 @@ class AuthService
         );
 
         return $status === Password::RESET_LINK_SENT
-            ? response()->json(['message' => __($status)])
-            : response()->json(['message' => __($status)], 400);
+        ? response()->json(['message' => __($status)])
+        : response()->json(['message' => __($status)], 400);
     }
 
     // public function resetPasswordForm($request)
@@ -169,7 +163,7 @@ class AuthService
         );
 
         return $status === Password::PASSWORD_RESET
-            ? response()->json(['message' => __($status)])
-            : response()->json(['message' => __($status)], 400);
+        ? response()->json(['message' => __($status)])
+        : response()->json(['message' => __($status)], 400);
     }
 }

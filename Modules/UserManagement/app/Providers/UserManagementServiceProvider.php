@@ -2,7 +2,6 @@
 
 namespace Modules\UserManagement\Providers;
 
-use App\Services\AuthService;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 

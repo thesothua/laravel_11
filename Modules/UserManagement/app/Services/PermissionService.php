@@ -1,11 +1,9 @@
 <?php
 
-
 namespace Modules\UserManagement\Services;
 
 use App\ApiResponse;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 
 class PermissionService
@@ -30,8 +28,7 @@ class PermissionService
             // Get all permissions
             $permissions = Permission::select($columns)->paginate();
 
-        
-            return $this->success($permissions, 'Permission fetched successfully');
+            return $this->successResponse('Permission fetched successfully', $permissions);
         } catch (\Exception $e) {
             return $this->error('An error occurred while fetching permissions.');
         }
@@ -40,16 +37,16 @@ class PermissionService
     public function store($request)
     {
         // Create a new permission
-        $permissions =  Permission::create(['name' => $request->name]);
+        $permissions = Permission::create(['name' => $request->name]);
 
-        return $this->success($permissions, 'Permission created successfully.');
+        return $this->createdResponse('Permission created successfully.', $permissions);
     }
 
     public function show($id)
     {
         // Show a single permission
         $permission = Permission::findOrFail($id);
-        return $this->success($permission, 'Permission fetched successfully');
+        return $this->successResponse('Permission fetched successfully', $permission);
     }
 
     public function update($request, $id)
@@ -60,7 +57,7 @@ class PermissionService
         // Update permission name
         $permission->update(['name' => $request->name]);
 
-        return $this->success($permission, 'Permission updated successfully');
+        return $this->successResponse('Permission updated successfully', $permission);
     }
 
     public function destroy($id)
@@ -69,6 +66,6 @@ class PermissionService
         $permission = Permission::findOrFail($id);
         $permission->delete();
 
-        return $this->success(null, 'Permission deleted successfully.');
+        return $this->successResponse('Permission deleted successfully.', null);
     }
 }
