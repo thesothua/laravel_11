@@ -1,9 +1,11 @@
 <?php
-
 namespace Modules\UserManagement\Services;
 
 use App\ApiResponse;
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
@@ -21,34 +23,16 @@ class AuthService
 
     public function register($request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            // Optional profile fields
-            'phone_number' => 'nullable|string|max:15',
-            'date_of_birth' => 'nullable|date',
-            'profile_image' => 'nullable|image|max:2048', // Example for profile image
-            // Optional address fields
-            'address_line_1' => 'nullable|string|max:255',
-            'address_line_2' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:100',
-            'state' => 'nullable|string|max:100',
-            'country' => 'nullable|string|max:100',
-            'postal_code' => 'nullable|string|max:20',
-            'type' => 'nullable|in:home,work,billing,shipping', // Address type validation
-        ]);
-
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'name'     => $request->name,
+            'email'    => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
         // Optional: Create profile if data provided
         if ($request->hasAny(['phone_number', 'date_of_birth', 'profile_image'])) {
             $user->profile()->create([
-                'phone_number' => $request->phone_number,
+                'phone_number'  => $request->phone_number,
                 'date_of_birth' => $request->date_of_birth,
                 'profile_image' => $request->profile_image ? $request->file('profile_image')->store('profile_images') : null,
             ]);
@@ -59,33 +43,35 @@ class AuthService
             $user->addresses()->create([
                 'address_line_1' => $request->address_line_1,
                 'address_line_2' => $request->address_line_2,
-                'city' => $request->city,
-                'state' => $request->state,
-                'country' => $request->country,
-                'postal_code' => $request->postal_code,
-                'type' => $request->type ?? 'home',
+                'city'           => $request->city,
+                'state'          => $request->state,
+                'country'        => $request->country,
+                'postal_code'    => $request->postal_code,
+                'type'           => $request->type ?? 'home',
             ]);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        event(new Registered($user));
+
         return response()->json([
             'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
+            'token_type'   => 'Bearer',
+            'user'         => $user,
         ]);
     }
 
     public function login($request)
     {
         $request->validate([
-            'email' => 'required|string|email',
+            'email'    => 'required|string|email',
             'password' => 'required|string',
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
 
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
@@ -96,8 +82,8 @@ class AuthService
 
         $data = [
             'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
+            'token_type'   => 'Bearer',
+            'user'         => $user,
         ];
 
         return $this->successResponse('User Login successfully', $data);
@@ -144,8 +130,8 @@ class AuthService
     public function resetPassword($request)
     {
         $validator = Validator::make($request->all(), [
-            'token' => 'required',
-            'email' => 'required|email|exists:users,email',
+            'token'    => 'required',
+            'email'    => 'required|email|exists:users,email',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
@@ -157,7 +143,8 @@ class AuthService
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
                 $user->forceFill([
-                    'password' => Hash::make($password),
+                    'password'          => Hash::make($password),
+                    'email_verified_at' => Carbon::now(),
                 ])->save();
             }
         );
@@ -165,5 +152,44 @@ class AuthService
         return $status === Password::PASSWORD_RESET
         ? response()->json(['message' => __($status)])
         : response()->json(['message' => __($status)], 400);
+    }
+
+    // Handle email verification
+    public function verify($request, $id, $hash)
+    {
+        $user = $request->user();
+
+        if (! hash_equals((string) $id, (string) $user->getKey()) ||
+            ! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return response()->json(['message' => 'Invalid verification link'], 403);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email already verified'], 200);
+        }
+
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
+        }
+
+        return response()->json(['message' => 'Email verified successfully'], 200);
+    }
+
+    // Resend verification email
+    public function resend($request)
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email already verified'], 200);
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return response()->json(['message' => 'Verification email resent'], 200);
+    }
+
+    // Notice for unverified users
+    public function notice()
+    {
+        return response()->json(['message' => 'Please verify your email address'], 401);
     }
 }

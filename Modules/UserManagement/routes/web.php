@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\UserManagement\Http\Controllers\Api\AuthController;
 use Modules\UserManagement\Http\Controllers\UserManagementController;
 
 /*
@@ -24,5 +25,7 @@ use Modules\UserManagement\Http\Controllers\UserManagementController;
     // })
     // ->middleware('guest')->name('password.reset');
     // });
+
+    Route::get('email/verify/{id}/{hash}', [AuthController::class, 'verify'])->name('verification.verify');
 
 
