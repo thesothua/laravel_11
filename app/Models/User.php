@@ -4,6 +4,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -66,5 +67,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function addresses()
     {
         return $this->hasMany(Address::class);
+    }
+
+    // Scope for customer users
+    public function scopeCustomer(Builder $query)
+    {
+        $query->whereHas('roles', function ($q) {
+            $q->where('name', 'Customer'); // Replace 'name' with the appropriate column in your roles table
+        });
     }
 }

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\UserManagement\Http\Controllers\Api\AuthController;
+use Modules\UserManagement\Http\Controllers\Api\CustomerController;
 use Modules\UserManagement\Http\Controllers\Api\PermissionController;
 use Modules\UserManagement\Http\Controllers\Api\RoleController;
 use Modules\UserManagement\Http\Controllers\Api\UserController;
@@ -36,6 +37,7 @@ Route::prefix('usermanagement')->group(function () {
         Route::resource('permissions', PermissionController::class);
         Route::resource('roles', RoleController::class);
         Route::resource('users', UserController::class);
+        Route::resource('customer', CustomerController::class);
     });
 
 });

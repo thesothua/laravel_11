@@ -6,15 +6,23 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Modules\UserManagement\Services\CustomerService;
 
 class CustomerController extends Controller
 {
+
+    public $customerService;
+
+    public function __construct(CustomerService $customerService)
+    {
+        return $this->customerService = $customerService;
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('usermanagement::index');
+        return $this->customerService->collection($request);
     }
 
     /**
@@ -28,7 +36,7 @@ class CustomerController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
         //
     }
@@ -38,7 +46,7 @@ class CustomerController extends Controller
      */
     public function show($id)
     {
-        return view('usermanagement::show');
+        return $this->customerService->show($id);
     }
 
     /**
