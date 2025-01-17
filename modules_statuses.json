@@ -1,4 +1,5 @@
 {
     "AuthManagement": true,
-    "UserManagement": true
+    "UserManagement": true,
+    "Setting": true
 }

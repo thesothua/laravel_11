@@ -25,7 +25,6 @@ Route::prefix('usermanagement')->group(function () {
     Route::post('/password/email', [AuthController::class, 'sendResetLinkEmail'])->name('usermanagement.password.email');
     Route::post('/password/reset', [AuthController::class, 'resetPassword'])->name('usermanagement.password.reset');
 
-    
     Route::post('email/resend', [AuthController::class, 'resend'])->name('verification.resend');
     Route::get('email/notice', [AuthController::class, 'notice'])->name('verification.notice');
 

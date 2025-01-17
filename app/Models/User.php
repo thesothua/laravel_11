@@ -73,7 +73,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function scopeCustomer(Builder $query)
     {
         $query->whereHas('roles', function ($q) {
-            $q->where('name', 'Customer'); // Replace 'name' with the appropriate column in your roles table
+            $q->where('name', 'Customer'); 
+        });
+    }
+    // Scope to exclude users with the "customer" role
+    public function scopeWithoutCustomer(Builder $query)
+    {
+        $query->whereDoesntHave('roles', function ($q) {
+            $q->where('name', 'Customer'); 
         });
     }
 }
