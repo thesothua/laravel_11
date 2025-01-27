@@ -28,9 +28,9 @@ Route::prefix('usermanagement')->group(function () {
     Route::post('email/resend', [AuthController::class, 'resend'])->name('verification.resend');
     Route::get('email/notice', [AuthController::class, 'notice'])->name('verification.notice');
 
-    Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('admin')->group(function () {
         // Route::get('/users', [UserController::class, 'index']);
-        // Route::get('/users', [UserController::class, 'index']);
+        // Route::post('/users/{id}', [UserController::class, 'update']);
         // Route::get('/users', [UserController::class, 'index']);
         // Route::post('/users', [UserController::class, 'store']);
         Route::resource('permissions', PermissionController::class);

@@ -1,5 +1,4 @@
 <?php
-
 namespace Modules\UserManagement\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -32,12 +31,12 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             // User core information
-            'name' => [
+            'name'                       => [
                 'required',
                 'string',
                 'max:255',
             ],
-            'email' => [
+            'email'                      => [
                 'required',
                 'string',
                 'email',
@@ -45,7 +44,7 @@ class UserController extends Controller
                 'unique:users,email',
             ],
 
-            'password' => [
+            'password'                   => [
                 'required',
                 'string',
                 'min:8',
@@ -53,47 +52,47 @@ class UserController extends Controller
             ],
 
             // Profile information
-            'profile' => [
+            'profile'                    => [
                 'required',
                 'array',
             ],
-            'profile.first_name' => [
+            'profile.first_name'         => [
                 'required',
                 'string',
                 'max:255',
             ],
-            'profile.last_name' => [
+            'profile.last_name'          => [
                 'nullable',
                 'string',
                 'max:255',
             ],
-            'profile.phone_number' => [
+            'profile.phone_number'       => [
                 'nullable',
                 'string',
                 'max:15',
             ],
-            'profile.date_of_birth' => [
+            'profile.date_of_birth'      => [
                 'nullable',
                 'date',
             ],
-            'profile.profile_image' => [
+            'profile.profile_image'      => [
                 'nullable',
                 'image',
                 'max:2048', // 2MB limit
             ],
 
             // Roles
-            'roles' => [
+            'roles'                      => [
                 'required',
                 'array',
             ],
-            'roles.*' => [
-                'integer', // Ensure each role ID is an integer
+            'roles.*'                    => [
+                'integer',         // Ensure each role ID is an integer
                 'exists:roles,id', // Validate that the role ID exists in the roles table
             ],
 
             // Addresses
-            'addresses' => [
+            'addresses'                  => [
                 'required',
                 'array',
             ],
@@ -102,27 +101,27 @@ class UserController extends Controller
                 'string',
                 'max:255',
             ],
-            'addresses.*.city' => [
+            'addresses.*.city'           => [
                 'required',
                 'string',
                 'max:100',
             ],
-            'addresses.*.state' => [
+            'addresses.*.state'          => [
                 'required',
                 'string',
                 'max:100',
             ],
-            'addresses.*.country' => [
+            'addresses.*.country'        => [
                 'required',
                 'string',
                 'max:100',
             ],
-            'addresses.*.postal_code' => [
+            'addresses.*.postal_code'    => [
                 'required',
                 'string',
                 'max:20',
             ],
-            'addresses.*.type' => [
+            'addresses.*.type'           => [
                 'required',
                 'in:home,work,billing,shipping', // Restrict to specific types
             ],
@@ -142,14 +141,15 @@ class UserController extends Controller
     {
         return $this->userService->show($id);
     }
-    
+
     /**
      * Update the specified resource in storage.
      */
-    // public function update(Request $request, $id)
-    // {
-    //     $this->userService->update($id);
-    // }
+    public function update(Request $request, $id)
+    {
+       
+       return $this->userService->update($request, $id);
+    }
 
     /**
      * Remove the specified resource from storage.

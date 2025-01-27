@@ -12,6 +12,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Modules\UserManagement\Models\Address;
 use Modules\UserManagement\Models\Profile;
 use Modules\UserManagement\Notifications\ResetPasswordNotification;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -54,6 +55,21 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    // protected static $logName = 'user_activity';
+
+    // // Optional: Configure the custom description for the activity log
+    // public function getDescriptionForEvent(string $eventName): string
+    // {
+    //     return "User {$eventName}";
+    // }
+
+    // Implement the required getActivitylogOptions method
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults();
+
+    // }
+
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPasswordNotification($token));
@@ -73,14 +89,19 @@ class User extends Authenticatable implements MustVerifyEmail
     public function scopeCustomer(Builder $query)
     {
         $query->whereHas('roles', function ($q) {
-            $q->where('name', 'Customer'); 
+            $q->where('name', 'Customer');
         });
     }
     // Scope to exclude users with the "customer" role
     public function scopeWithoutCustomer(Builder $query)
     {
         $query->whereDoesntHave('roles', function ($q) {
-            $q->where('name', 'Customer'); 
+            $q->where('name', 'Customer');
         });
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(Activity::class, 'subject_id');
     }
 }

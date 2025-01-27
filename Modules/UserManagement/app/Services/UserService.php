@@ -3,6 +3,7 @@ namespace Modules\UserManagement\Services;
 
 use App\ApiResponse;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -21,7 +22,7 @@ class UserService
 
     public function collection($request)
     {
-        return $this->userModel->withoutCustomer()->get();
+        return $this->userModel->withoutCustomer()->with(['roles'])->get();
     }
 
     public function store($request)
@@ -54,7 +55,7 @@ class UserService
                 }
             }
 
-            $this->authService->sendResetLinkEmail($request);
+            // $this->authService->sendResetLinkEmail($request);
 
             DB::commit();
             return $this->createdResponse('User created successfully.', $this->show($user->id, true));
@@ -73,7 +74,7 @@ class UserService
 
     public function show($id, $self = false)
     {
-        $user = $this->userModel->with('roles', 'permissions', 'addresses')->findOrFail($id);
+        $user = $this->userModel->with('profile', 'roles', 'permissions', 'addresses', 'activities')->findOrFail($id);
         if ($self) {
             return $user;
         }
@@ -86,52 +87,86 @@ class UserService
             // Begin the transaction
             DB::beginTransaction();
 
-            // Find the user by ID
-            $user = $this->userModel->findOrFail($id);
+            $user = $this->userModel->with('profile')->findOrFail($id);
 
-            // Update user details
-            $user->update([
-                'name'     => $request->name,
-                'email'    => $request->email,
-                'password' => $request->has('password') ? Hash::make($request->password) : $user->password,
-            ]);
+            // Track changes for the user model
+            $originalUserData = $user->getOriginal();
 
             // Update profile if provided
+            $profileChanges = [];
             if ($request->has('profile')) {
-                $user->profile()->updateOrCreate([], $request->input('profile'));
+                $profile        = $user->profile()->updateOrCreate([], $request->input('profile'));
+                $profileChanges = $profile->getChanges();
             }
 
             // Sync addresses by ID
+            $addressChanges    = [];
+            $deletedAddressIds = [];
             if ($request->has('addresses')) {
                 $addresses = $request->input('addresses');
                 foreach ($addresses as $addressData) {
                     if (isset($addressData['id'])) {
                         // Update existing address
-                        $user->addresses()->where('id', $addressData['id'])->update($addressData);
+                        $address = $user->addresses()->where('id', $addressData['id'])->first();
+                        if ($address) {
+                            $originalAddressData = $address->getOriginal();
+                            $address->update($addressData);
+                            $addressChanges[] = [
+                                'id'      => $address->id,
+                                'changes' => $address->getChanges(),
+                            ];
+                        }
                     } else {
                         // Create new address
-                        $user->addresses()->create($addressData);
+                        $newAddress       = $user->addresses()->create($addressData);
+                        $addressChanges[] = [
+                            'id'      => $newAddress->id,
+                            'changes' => $newAddress->getAttributes(),
+                        ];
                     }
                 }
-                // Optionally, delete addresses not in the request
-                $addressIds = collect($addresses)->pluck('id')->filter()->toArray();
-                $user->addresses()->whereNotIn('id', $addressIds)->delete();
+
+                // Delete addresses not in the request
+                $addressIds       = collect($addresses)->pluck('id')->filter()->toArray();
+                $deletedAddresses = $user->addresses()->whereNotIn('id', $addressIds)->get();
+
+                foreach ($deletedAddresses as $deletedAddress) {
+                    $deletedAddressIds[] = $deletedAddress->id;
+                    $deletedAddress->delete();
+                }
             }
 
             // Update roles if provided
+            $roleChanges = [];
             if ($request->has('roles')) {
-                // Sync roles to remove old roles and assign new ones
-                $user->syncRoles($request->roles);
+                $originalRoles = $user->roles->pluck('id')->toArray();
+                $newRoles      = $request->roles;
+                $user->syncRoles($newRoles);
+
+                $roleChanges = [
+                    'removed' => array_diff($originalRoles, $newRoles),
+                    'added'   => array_diff($newRoles, $originalRoles),
+                ];
             }
+
+            activity('user_activity') // Activity log name
+                ->causedBy(Auth::id())    // The user causing the activity
+                ->performedOn($user)      // Model on which activity is performed
+                ->withProperties([
+              
+                    'profile_changes'   => $profileChanges,
+                    'address_changes'   => $addressChanges,
+                    'deleted_addresses' => $deletedAddressIds,
+                    'role_changes'      => $roleChanges,
+                ])
+                ->log('User and Profile were updated.');
 
             DB::commit();
             return $this->successResponse('User updated successfully.', $this->show($user->id, true));
+
         } catch (\Throwable $e) {
             // Rollback the transaction on error
             DB::rollBack();
-
-            // Log the error for debugging
-            Log::error('Error updating user: ' . $e->getMessage(), ['exception' => $e]);
 
             // Return a proper error response
             return response()->json([
@@ -140,6 +175,41 @@ class UserService
             ], 500);
         }
     }
+
+    // protected function logSingleActivity($model, $action, $originalData, $updatedData)
+    // {
+    //     // Compare the original and updated data to track changes
+    //     $changes = [];
+
+    //     // dd($originalData, $updatedData);
+
+    //     // Check changes in the user
+    //     if (! empty($originalData['user'])) {
+    //         $userChanges = array_diff_assoc($updatedData['user'], $originalData['user']);
+    //         if (! empty($userChanges)) {
+    //             $changes['user'] = $userChanges;
+    //         }
+    //     }
+
+    //     // Check changes in the profile
+    //     if (! empty($originalData['profile'])) {
+    //         $profileChanges = array_diff_assoc($updatedData['profile'], $originalData['profile']);
+    //         if (! empty($profileChanges)) {
+    //             $changes['profile'] = $profileChanges;
+    //         }
+    //     }
+
+    //     // Log only if there are changes
+    //     if (! empty($changes)) {
+    //         ActivityLog::create([
+    //             'user_id'    => Auth::id(),            // ID of the user performing the action
+    //             'action'     => $action,               // Action performed (e.g., 'updated')
+    //             'model_type' => get_class($model),     // Type of model (e.g., 'App\Models\User')
+    //             'model_id'   => $model->id,            // ID of the model instance
+    //             'changes'    => json_encode($changes), // Aggregated changes
+    //         ]);
+    //     }
+    // }
 
     public function destroy($id)
     {
